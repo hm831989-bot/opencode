@@ -13,7 +13,7 @@ import { useTerminalDimensions } from "@opentui/solid"
 import { useTuiConfig } from "../config"
 import { useTheme } from "../context/theme"
 import { HomeSessionDestinationProvider } from "./home/session-destination"
-import { JarvisOrb } from "../component/jarvis-orb"
+import { PlasmaOrb } from "../component/plasma-orb"
 
 let once = false
 const placeholder = {
@@ -80,7 +80,7 @@ export function Home() {
             <Logo />
           </pluginRuntime.Slot>
         </box>
-        <JarvisOrb />
+        <PlasmaOrb />
         <box height={1} minHeight={0} flexShrink={1} />
         <text fg={theme.primary} selectable={false}>{"◈ JARVIS CORE  /  ONLINE  /  READY FOR COMMAND"}</text>
         <text fg={theme.primary} selectable={false}>{"MIC: /listen   SPEAKER: /speak   VOICE: local"}</text>
