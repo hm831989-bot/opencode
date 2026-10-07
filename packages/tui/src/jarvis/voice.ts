@@ -2,10 +2,14 @@ import { spawn } from "node:child_process"
 import { mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { createSignal } from "solid-js"
 
 export type VoiceState = "idle" | "listening" | "speaking" | "error"
 
 let activeProcess: ReturnType<typeof spawn> | undefined
+const [voiceState, setVoiceState] = createSignal<VoiceState>("idle")
+
+export { voiceState }
 
 function run(command: string, args: string[], input?: string) {
   return new Promise<{ code: number; stdout: string; stderr: string }>((resolve, reject) => {
@@ -36,9 +40,11 @@ function powershellTts(text: string) {
 export async function speak(text: string) {
   const value = text.trim()
   if (!value) return
+  setVoiceState("speaking")
   if (process.platform === "win32") {
     const result = await powershellTts(value)
     if (result.code !== 0) throw new Error(result.stderr || "Windows TTS failed")
+    setVoiceState("idle")
     return
   }
 
@@ -51,12 +57,16 @@ export async function speak(text: string) {
   for (const [command, baseArgs] of candidates) {
     try {
       const result = await run(command, [...baseArgs, value])
-      if (result.code === 0) return
+      if (result.code === 0) {
+        setVoiceState("idle")
+        return
+      }
       lastError = result.stderr
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error)
     }
   }
+  setVoiceState("error")
   throw new Error(lastError || "No supported TTS engine found")
 }
 
@@ -111,12 +121,17 @@ export async function transcribeFile(file: string) {
 }
 
 export async function listen(seconds = Number(process.env.JARVIS_STT_SECONDS ?? 6)) {
+  setVoiceState("listening")
   const dir = await mkdtemp(join(tmpdir(), "jarvis-stt-"))
   const file = join(dir, "input.wav")
   try {
     await record(seconds, file)
     return await transcribeFile(file)
+  } catch (error) {
+    setVoiceState("error")
+    throw error
   } finally {
+    if (voiceState() === "listening") setVoiceState("idle")
     await rm(dir, { recursive: true, force: true })
   }
 }
