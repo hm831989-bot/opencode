@@ -83,6 +83,7 @@ import type { EventSource } from "./context/sdk"
 import { DialogVariant } from "./component/dialog-variant"
 import { createTuiAttention } from "./attention"
 import * as TuiAudio from "./audio"
+import { listen, speak, cancelVoice } from "./jarvis/voice"
 import { win32DisableProcessedInput, win32FlushInputBuffer } from "./terminal-win32"
 import { destroyRenderer } from "./util/renderer"
 import { cliErrorMessage, errorFormat } from "./util/error"
@@ -456,7 +457,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
     if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("OpenCode")
+      renderer.setTerminalTitle("JARVIS")
       return
     }
 
@@ -468,12 +469,12 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
       }
 
       const title = session.title.length > 40 ? session.title.slice(0, 37) + "…" : session.title
-      renderer.setTerminalTitle(`OC | ${title}`)
+      renderer.setTerminalTitle(`JARVIS | ${title}`)
       return
     }
 
     if (route.data.type === "plugin") {
-      renderer.setTerminalTitle(`OC | ${route.data.id}`)
+      renderer.setTerminalTitle(`JARVIS | ${route.data.id}`)
     }
   })
 
@@ -628,6 +629,56 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           local.session.quickSwitch(i + 1)
         },
       })),
+      {
+        name: "voice.listen",
+        title: "Listen with microphone",
+        category: "Voice",
+        slashName: "listen",
+        run: async () => {
+          try {
+            const text = await listen()
+            if (!text) {
+              toast.show({ message: "No speech detected", variant: "info" })
+              return
+            }
+            promptRef.current?.set({ input: text, parts: [] })
+            toast.show({ message: "Speech transcribed", variant: "success" })
+          } catch (error) {
+            toast.show({
+              message: error instanceof Error ? error.message : String(error),
+              variant: "error",
+            })
+          }
+        },
+      },
+      {
+        name: "voice.speak",
+        title: "Speak current prompt",
+        category: "Voice",
+        slashName: "speak",
+        run: async () => {
+          const text = promptRef.current?.current.input.trim()
+          if (!text) {
+            toast.show({ message: "Nothing to speak", variant: "info" })
+            return
+          }
+          try {
+            await speak(text)
+          } catch (error) {
+            toast.show({
+              message: error instanceof Error ? error.message : String(error),
+              variant: "error",
+            })
+          }
+        },
+      },
+      {
+        name: "voice.cancel",
+        title: "Cancel voice",
+        category: "Voice",
+        hidden: true,
+        run: () => cancelVoice(),
+      },
       {
         name: "model.list",
         title: "Switch model",
