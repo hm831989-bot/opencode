@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111b">
+  <meta name="description" content="Private, self-hosted OpenCode command station">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/app.css">
+  <title>Home Agent Station</title>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span><span></span></div>
+        <div><strong>HOME STATION</strong><small>PERSONAL AI SYSTEM</small></div>
+      </div>
+      <button class="new-chat" id="newSession"><span>＋</span> New session</button>
+      <div class="section-label">WORKSPACE <span id="sessionCount">0</span></div>
+      <div id="sessions" class="sessions"><div class="empty-side">Connect to OpenCode to load sessions.</div></div>
+      <div class="sidebar-bottom">
+        <div class="status-line"><i class="status-dot" id="statusDot"></i><span id="statusText">Connecting…</span></div>
+        <button class="quiet-button" id="settingsButton">⚙ Connection & voice settings</button>
+        <div class="version">HOME AGENT STATION <span>EARLY ACCESS</span></div>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menuButton" aria-label="Open sidebar">☰</button>
+        <div class="crumb"><span>COMMAND CENTER</span><b>/</b><strong id="activeTitle">New session</strong></div>
+        <div class="top-actions"><span class="connection-pill" id="connectionPill"><i></i><span>Offline</span></span><button class="icon-button" id="refreshButton" title="Refresh sessions">↻</button></div>
+      </header>
+      <section class="welcome" id="welcome">
+        <div class="eyebrow"><span class="eyebrow-line"></span> SYSTEM READY WHEN YOU ARE</div>
+        <div class="orb-wrap" aria-hidden="true">
+          <div class="orb-ring ring-one"></div><div class="orb-ring ring-two"></div><div class="orb-ring ring-three"></div>
+          <div class="orb"><div class="orb-core"></div><div class="orb-glint"></div></div><div class="orb-scan"></div>
+        </div>
+        <h1>Your command.<br><span>Your station.</span></h1>
+        <p class="welcome-copy">A private control surface for your OpenCode agent.<br>Execution stays on your computer. AI inference stays with your configured provider.</p>
+        <div class="quick-actions">
+          <button class="quick-card" data-prompt="Inspect the current project and summarize its structure."><span class="quick-icon">⌘</span><span><b>Inspect a project</b><small>Understand files and structure</small></span><span class="quick-arrow">↗</span></button>
+          <button class="quick-card" data-prompt="Review the current project for bugs and suggest the highest-priority fixes. Do not modify files yet."><span class="quick-icon">⌕</span><span><b>Review my code</b><small>Find issues before changing anything</small></span><span class="quick-arrow">↗</span></button>
+          <button class="quick-card" data-prompt="Help me plan the next concrete step for this project. First inspect the repository and report what you find."><span class="quick-icon">◇</span><span><b>Plan next steps</b><small>Turn the goal into an action plan</small></span><span class="quick-arrow">↗</span></button>
+        </div>
+      </section>
+      <section class="conversation" id="conversation" hidden><div class="messages" id="messages"></div></section>
+      <div class="composer-area">
+        <div class="composer-meta"><span><i></i> AGENT INPUT</span><span id="voiceStatus">Voice is off until you activate it</span></div>
+        <form class="composer" id="composer">
+          <textarea id="promptInput" rows="1" placeholder="Message your agent… (Enter to send, Shift+Enter for a new line)" aria-label="Message your agent"></textarea>
+          <div class="composer-controls">
+            <div class="left-controls"><button type="button" class="tool-button" id="micButton" title="Speech to text">♩ <span>Talk</span></button><button type="button" class="tool-button" id="speakToggle" aria-pressed="false" title="Read agent replies aloud">◖ <span>Voice reply</span></button></div>
+            <button class="send-button" id="sendButton" type="submit"><span>Send command</span><b>↑</b></button>
+          </div>
+        </form>
+        <div class="footnote">Review commands before allowing destructive or privileged actions. Never expose this station directly to the public internet.</div>
+      </div>
+    </main>
+  </div>
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-head"><div><div class="eyebrow">CONFIGURATION</div><h2>Station settings</h2></div><button class="icon-button" aria-label="Close">×</button></form>
+    <div class="settings-body">
+      <label for="tokenInput">Access token <span>Required when the host is configured with one</span></label>
+      <input id="tokenInput" type="password" autocomplete="off" placeholder="Paste Home Station token">
+      <p class="hint">The token is kept in this browser tab only. It is not your model-provider API key.</p>
+      <label class="toggle-row"><span><b>Speak agent replies</b><small>Uses the device's built-in speech synthesis</small></span><input type="checkbox" id="ttsSetting"></label>
+      <div class="settings-warning"><b>Private network only</b><p>For phone access, use a trusted private VPN such as Tailscale. Do not port-forward this service or the OpenCode API to the public internet.</p></div>
+      <div class="settings-actions"><button type="button" class="secondary-button" id="testConnection">Test connection</button><button type="button" class="primary-button" id="saveSettings">Save settings</button></div>
+      <div id="settingsResult" class="settings-result" role="status"></div>
+    </div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
