@@ -1,0 +1,11 @@
+{
+  "name": "Home Agent Station",
+  "short_name": "Home Station",
+  "description": "Private control interface for your OpenCode agent",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07111b",
+  "theme_color": "#07111b",
+  "orientation": "any",
+  "icons": []
+}
