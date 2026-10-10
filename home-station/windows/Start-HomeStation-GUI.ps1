@@ -2,10 +2,13 @@ param(
   [int]$OpenCodePort = 4096,
   [int]$StationPort = 8787,
   [string]$StationHost = "127.0.0.1",
-  [string]$OpenCodeUrl = "http://127.0.0.1:4096"
+  [string]$OpenCodeUrl = "http://127.0.0.1:4096",
+  [string]$WorkspacePath = (Get-Location).Path
 )
 
 $ErrorActionPreference = "Stop"
+if (-not (Test-Path -LiteralPath $WorkspacePath -PathType Container)) { throw "WorkspacePath does not exist: $WorkspacePath" }
+$WorkspacePath = (Resolve-Path -LiteralPath $WorkspacePath).Path
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $LogDir = Join-Path $env:LOCALAPPDATA "OpenCodeHomeStation\logs"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
@@ -31,7 +34,7 @@ $opencodeErrLog = Join-Path $LogDir "opencode.stderr.log"
 Write-Host "Starting OpenCode server on loopback port $OpenCodePort..."
 $existing = Get-NetTCPConnection -LocalPort $OpenCodePort -State Listen -ErrorAction SilentlyContinue
 if (-not $existing) {
-  $proc = Start-Process -FilePath $OpenCode.Source -ArgumentList @("serve", "--hostname", "127.0.0.1", "--port", "$OpenCodePort") -PassThru -WindowStyle Hidden -RedirectStandardOutput $opencodeOutLog -RedirectStandardError $opencodeErrLog
+  $proc = Start-Process -FilePath $OpenCode.Source -ArgumentList @("serve", "--hostname", "127.0.0.1", "--port", "$OpenCodePort") -PassThru -WindowStyle Hidden -WorkingDirectory $WorkspacePath -RedirectStandardOutput $opencodeOutLog -RedirectStandardError $opencodeErrLog
   $ready = $false
   for ($i = 0; $i -lt 30; $i++) {
     Start-Sleep -Milliseconds 500
@@ -42,7 +45,8 @@ if (-not $existing) {
 } else {
   Write-Host "Port $OpenCodePort is already listening; reusing it."
 }
-Write-Host ("Starting Home Agent Station GUI at http://" + $StationHost + ":" + $StationPort)
+Write-Host ("Workspace: " + $WorkspacePath)
+Write-Host ("Starting Home Agent Station GUI at http://127.0.0.1:" + $StationPort)
 Write-Host ("Logs: " + $LogDir)
 Push-Location $Root
 try {
