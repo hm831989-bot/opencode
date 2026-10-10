@@ -26,19 +26,19 @@ $env:OPENCODE_URL = $OpenCodeUrl
 $env:HOME_STATION_HOST = $StationHost
 $env:HOME_STATION_PORT = "$StationPort"
 
-$opencodeLog = Join-Path $LogDir "opencode.log"
-$stationLog = Join-Path $LogDir "station.log"
+$opencodeOutLog = Join-Path $LogDir "opencode.stdout.log"
+$opencodeErrLog = Join-Path $LogDir "opencode.stderr.log"
 Write-Host "Starting OpenCode server on loopback port $OpenCodePort..."
 $existing = Get-NetTCPConnection -LocalPort $OpenCodePort -State Listen -ErrorAction SilentlyContinue
 if (-not $existing) {
-  $proc = Start-Process -FilePath $OpenCode.Source -ArgumentList @("serve", "--hostname", "127.0.0.1", "--port", "$OpenCodePort") -PassThru -WindowStyle Hidden -RedirectStandardOutput $opencodeLog -RedirectStandardError $opencodeLog
+  $proc = Start-Process -FilePath $OpenCode.Source -ArgumentList @("serve", "--hostname", "127.0.0.1", "--port", "$OpenCodePort") -PassThru -WindowStyle Hidden -RedirectStandardOutput $opencodeOutLog -RedirectStandardError $opencodeErrLog
   $ready = $false
   for ($i = 0; $i -lt 30; $i++) {
     Start-Sleep -Milliseconds 500
     try { $null = Invoke-WebRequest "$OpenCodeUrl/global/health" -TimeoutSec 1; $ready = $true; break } catch {}
     if ($proc.HasExited) { break }
   }
-  if (-not $ready) { Write-Warning "OpenCode health endpoint did not respond yet. The GUI will still start; check $opencodeLog." }
+  if (-not $ready) { Write-Warning "OpenCode health endpoint did not respond yet. The GUI will still start; check $opencodeOutLog and $opencodeErrLog." }
 } else {
   Write-Host "Port $OpenCodePort is already listening; reusing it."
 }
